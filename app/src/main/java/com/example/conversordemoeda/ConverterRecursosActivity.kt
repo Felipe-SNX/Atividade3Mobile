@@ -1,5 +1,7 @@
 package com.example.conversordemoeda
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.conversordemoeda.data.Moeda
 import com.example.conversordemoeda.interfaces.MoedaApi
@@ -23,6 +26,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.DecimalFormat
+import java.util.Locale
 
 class ConverterRecursosActivity : AppCompatActivity() {
 
@@ -35,6 +39,7 @@ class ConverterRecursosActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar;
     private lateinit var moedaApi: MoedaApi;
     private lateinit var textViewResult: TextView;
+    private lateinit var arraySaldos: DoubleArray;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,69 +78,98 @@ class ConverterRecursosActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
+
+        val bundle = intent.extras;
+        if (bundle != null) {
+
+            val array = bundle.getDoubleArray("saldos")
+
+            if (array != null) {
+                arraySaldos = array
+
+                Log.d("ConverterRecursos", "Saldos recebidos: ${arraySaldos.joinToString()}")
+            } else {
+                Log.e("ConverterRecursos", "O extra 'saldos' é nulo ou não é um DoubleArray.")
+            }
+        } else {
+            Log.e("ConverterRecursos", "O bundle de extras está nulo.")
+        }
     }
 
     fun converterMoeda(view: View){
         lifecycleScope.launch {
-            showLoading()
+            showLoading();
             val moedas = buscarDadoApi();
-            System.out.println(moedas);
+
+            val moedaOrigem = comboOrigem.selectedItem.toString()
+            val moedaDestino = comboDestino.selectedItem.toString()
+
+            val valorParaConverter = editTextValor.text.toString().replace(",", ".").toDoubleOrNull()
+
+            if (valorParaConverter == null || valorParaConverter <= 0) {
+                //Toast.makeText(this, "Por favor, insira um valor válido.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            var temSaldoSuficiente = false
+
+            when (moedaOrigem) {
+                "Real" -> if (arraySaldos[0] >= valorParaConverter) temSaldoSuficiente = true
+                "Dólar" -> if (arraySaldos[1] >= valorParaConverter) temSaldoSuficiente = true
+                "Bitcoin" -> if (arraySaldos[2] >= valorParaConverter) temSaldoSuficiente = true
+            }
+
+
+            if (!temSaldoSuficiente) {
+                //Toast.makeText(this, "Saldo insuficiente!", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val stringPesquisa = when {
+                moedaDestino == "Bitcoin" && moedaOrigem == "Dólar" -> "BTCUSD"
+                moedaDestino == "Bitcoin" && moedaOrigem == "Real" -> "BTCBRL"
+                moedaOrigem == "Dólar" -> "USDBRL"
+                moedaOrigem == "Real" -> "BRLUSD"
+                else -> "BTCBRL"
+            }
+
+            val bid = moedas?.get(stringPesquisa)?.bid
+            var valorConvertido = 0.0;
+
+            if (bid != null && bid > 0) {
+                if(moedaDestino == "Bitcoin"){
+                    valorConvertido = valorParaConverter / bid;
+                }
+                else{
+                    valorConvertido = valorParaConverter * bid;
+                }
+                println("Valor convertido: $valorConvertido")
+            } else {
+                println("Não foi possível realizar a conversão. Cotação não encontrada ou inválida.")
+            }
+
+
+            when (moedaOrigem) {
+                "BRL" -> arraySaldos[0] -= valorParaConverter
+                "USD" -> arraySaldos[1] -= valorParaConverter
+                "BTC" -> arraySaldos[2] -= valorParaConverter
+            }
+
+            when (moedaDestino) {
+                "BRL" -> arraySaldos[0] += valorConvertido
+                "USD" -> arraySaldos[1] += valorConvertido
+                "BTC" -> arraySaldos[2] += valorConvertido
+            }
+
+
+            val resultadoFormatado = String.format(Locale.US, "%.2f", valorConvertido)
+            textViewResult.text = "Valor convertido: $resultadoFormatado $moedaDestino"
+
+
+            //Toast.makeText(this, "Conversão realizada com sucesso!", Toast.LENGTH_SHORT).show()
+
         }
 
-        val moedaOrigem = spinnerMoedaOrigem.selectedItem.toString()
-
-
-        val moedaDestino = spinnermoedaDestino.selectedItem.toString()
-
-
-        val valorParaConverter = editTextValor.text.toString().replace(",", ".").toDoubleOrNull()
-
-
-        if (valorParaConverter == null || valorParaConverter <= 0) {
-
-            Toast.makeText(this, "Por favor, insira um valor válido.", Toast.LENGTH_SHORT).show()
-            return@setOnClickListener
-        }
-
-        var temSaldoSuficiente = false
-
-
-        when (moedaOrigem) {
-            "BRL" -> if (saldoBRL >= valorParaConverter) temSaldoSuficiente = true
-            "USD" -> if (saldoUSD >= valorParaConverter) temSaldoSuficiente = true
-            "BTC" -> if (saldoBTC >= valorParaConverter) temSaldoSuficiente = true
-        }
-
-
-        if (!temSaldoSuficiente) {
-            Toast.makeText(this, "Saldo insuficiente!", Toast.LENGTH_SHORT).show()
-            return@setOnClickListener
-        }
-
-
-        val valorConvertido = valorParaConverter * taxaCambio
-
-
-        when (moedaOrigem) {
-            "BRL" -> saldoBRL -= valorParaConverter
-            "USD" -> saldoUSD -= valorParaConverter
-            "BTC" -> saldoBTC -= valorParaConverter
-        }
-
-        when (moedaDestino) {
-            "BRL" -> saldoBRL += valorConvertido
-            "USD" -> saldoUSD += valorConvertido
-            "BTC" -> saldoBTC += valorConvertido
-        }
-
-
-        val resultadoFormatado = String.format(Locale.US, "%.2f", valorConvertido)
-        textViewResultado.text = "Valor convertido: $resultadoFormatado $moedaDestino"
-
-
-        Toast.makeText(this, "Conversão realizada com sucesso!", Toast.LENGTH_SHORT).show()
-
-        val moeda: Moeda = buscarDadoApi();
     }
 
     private suspend fun buscarDadoApi(): Map<String, Moeda>? {
@@ -171,7 +205,7 @@ class ConverterRecursosActivity : AppCompatActivity() {
                 hideLoading();
             }
         }
-        hideLoading()
+        hideLoading();
         return null;
     }
 
@@ -184,7 +218,6 @@ class ConverterRecursosActivity : AppCompatActivity() {
         progressBar.visibility = View.GONE;
         textViewResult.visibility = View.VISIBLE;
     }
-    }*/
 
     fun adicionaListenerValor(){
         //Formata o valor para duas casas decimais
