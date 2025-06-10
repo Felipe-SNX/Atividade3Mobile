@@ -91,4 +91,12 @@
         android:onClick="converterMoeda"
         android:layout_marginTop="24dp"/>
 
+    <Button
+        android:id="@+id/btnVoltar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Voltar"
+        android:onClick="voltar"
+        android:layout_marginTop="24dp"/>
+
 </LinearLayout>
