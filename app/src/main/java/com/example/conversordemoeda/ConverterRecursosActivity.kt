@@ -4,15 +4,12 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import android.widget.Spinner
 import android.widget.TextView
 import com.example.conversordemoeda.data.Moeda
@@ -63,12 +60,66 @@ class ConverterRecursosActivity : AppCompatActivity() {
     }
 
     fun converterMoeda(view: View){
-        val moeda: Moeda = buscarDadoApi();
+
+        val moedaOrigem = spinnerMoedaOrigem.selectedItem.toString()
+
+
+        val moedaDestino = spinnermoedaDestino.selectedItem.toString()
+
+
+        val valorParaConverter = editTextValor.text.toString().replace(",", ".").toDoubleOrNull()
+
+
+        if (valorParaConverter == null || valorParaConverter <= 0) {
+
+            Toast.makeText(this, "Por favor, insira um valor válido.", Toast.LENGTH_SHORT).show()
+            return@setOnClickListener
+        }
+
+        var temSaldoSuficiente = false
+
+
+        when (moedaOrigem) {
+            "BRL" -> if (saldoBRL >= valorParaConverter) temSaldoSuficiente = true
+            "USD" -> if (saldoUSD >= valorParaConverter) temSaldoSuficiente = true
+            "BTC" -> if (saldoBTC >= valorParaConverter) temSaldoSuficiente = true
+        }
+
+
+        if (!temSaldoSuficiente) {
+            Toast.makeText(this, "Saldo insuficiente!", Toast.LENGTH_SHORT).show()
+            return@setOnClickListener
+        }
+
+        
+        val valorConvertido = valorParaConverter * taxaCambio
+
+
+        when (moedaOrigem) {
+            "BRL" -> saldoBRL -= valorParaConverter
+            "USD" -> saldoUSD -= valorParaConverter
+            "BTC" -> saldoBTC -= valorParaConverter
+        }
+
+        when (moedaDestino) {
+            "BRL" -> saldoBRL += valorConvertido
+            "USD" -> saldoUSD += valorConvertido
+            "BTC" -> saldoBTC += valorConvertido
+        }
+
+
+        val resultadoFormatado = String.format(Locale.US, "%.2f", valorConvertido)
+        textViewResultado.text = "Valor convertido: $resultadoFormatado $moedaDestino"
+
+
+        Toast.makeText(this, "Conversão realizada com sucesso!", Toast.LENGTH_SHORT).show()
+
+        /*val moeda: Moeda = buscarDadoApi();
     }
 
     fun buscarDadoApi(): Moeda{
 
-    }
+    }*/
 
     fun adicionaListenerValor(){
         //Formata o valor para duas casas decimais
