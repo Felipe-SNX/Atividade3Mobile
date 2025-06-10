@@ -2,45 +2,31 @@ package com.example.conversordemoeda
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
-import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import java.util.Locale
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private val saldos = mapOf(
-        "BRL" to 100_000.0,
-        "USD" to 50_000.0,
-        "BTC" to 0.5
-    )
-
-    private fun Double.fmt(decimals: Int): String =
-        String.format(Locale("pt","BR"), "%,.${decimals}f", this)
+    private lateinit var button: Button;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-
-        val tvBRL       = findViewById<TextView>(R.id.tvSaldoBRL)
-        val tvUSD       = findViewById<TextView>(R.id.tvSaldoUSD)
-        val tvBTC       = findViewById<TextView>(R.id.tvSaldoBTC)
-        val btnConverter = findViewById<Button>(R.id.btnConverter)
-
-        tvBRL.text = "R$ ${saldos["BRL"]!!.fmt(2)}"
-        tvUSD.text = "US$ ${saldos["USD"]!!.fmt(2)}"
-        tvBTC.text = "BTC ${saldos["BTC"]!!.fmt(4)}"
-
-        btnConverter.setOnClickListener {
-            val valores = doubleArrayOf(
-                saldos["BRL"]!!,
-                saldos["USD"]!!,
-                saldos["BTC"]!!
-            )
-            Intent(this, CurrencyConvertActivity::class.java).apply {
-                putExtra("saldos", valores)
-                startActivity(this)
-            }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
+
+        button = findViewById<Button>(R.id.converterButton);
+    }
+
+    fun irParaConversao(view: View){
+        startActivity(Intent(this, ConverterRecursosActivity::class.java))
     }
 }

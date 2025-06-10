@@ -1,56 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:fillViewport="true"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/tvTitulo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Conversor de Moedas"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
-
-        <TextView
-            android:id="@+id/tvSaldoBRL"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="R$ 100.000,00"
-            android:textSize="18sp"
-            android:layout_marginTop="24dp"/>
-
-        <TextView
-            android:id="@+id/tvSaldoUSD"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="US$ 50.000,00"
-            android:textSize="18sp"
-            android:layout_marginTop="16dp"/>
-
-        <TextView
-            android:id="@+id/tvSaldoBTC"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="BTC 0,5000"
-            android:textSize="18sp"
-            android:layout_marginTop="16dp"/>
-
-        <Button
-            android:id="@+id/btnConverter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Converter Recursos"
-            android:layout_marginTop="32dp"/>
-
-    </LinearLayout>
-</ScrollView>
+    <Button
+        android:id="@+id/converterButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="irParaConversao"
+        android:text="Button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
