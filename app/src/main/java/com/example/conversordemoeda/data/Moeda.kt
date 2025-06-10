@@ -12,6 +12,6 @@ data class Moeda(
     val pctChange: Double,
     val bid: Double,
     val ask: Double,
-    val timestamp: Int,
-    val create_date: LocalDate
+    val timestamp: Long,
+    val create_date: String
 )

@@ -3,6 +3,7 @@ package com.example.conversordemoeda
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -15,8 +16,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
 import com.example.conversordemoeda.data.Moeda
 import com.example.conversordemoeda.interfaces.MoedaApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.DecimalFormat
@@ -31,6 +36,7 @@ class ConverterRecursosActivity : AppCompatActivity() {
     private lateinit var btnConverter: Button;
     private lateinit var progressBar: ProgressBar;
     private lateinit var moedaApi: MoedaApi;
+    private lateinit var textViewResult: TextView;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +50,7 @@ class ConverterRecursosActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar);
         comboOrigem = findViewById(R.id.spinnerMoedaOrigem);
         comboDestino = findViewById(R.id.spinnerMoedaDestino);
+        textViewResult = findViewById(R.id.textViewResult);
 
         val opcoesFiltro = listOf("Bitcoin", "Dólar", "Real");
         val comboAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, opcoesFiltro);
@@ -60,14 +67,69 @@ class ConverterRecursosActivity : AppCompatActivity() {
 
         moedaApi = retrofit.create(MoedaApi::class.java);
 
+        comboOrigem.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+               editTextValor.setText("");
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
     }
 
     fun converterMoeda(view: View){
-        val moeda: Moeda = buscarDadoApi();
+        lifecycleScope.launch {
+            showLoading()
+            val moedas = buscarDadoApi();
+            System.out.println(moedas);
+        }
     }
 
-    fun buscarDadoApi(): Moeda{
+    private suspend fun buscarDadoApi(): Map<String, Moeda>? {
 
+        val moedaOrigem = comboOrigem.selectedItem.toString()
+        val moedaDestino = comboDestino.selectedItem.toString()
+
+        if (moedaOrigem == moedaDestino) {
+            textViewResult.text = "As moedas precisam ser diferentes"
+        }
+        else {
+            textViewResult.text = "";
+
+            val stringPesquisa = when {
+                moedaDestino == "Bitcoin" && moedaOrigem == "Dólar" -> "BTC-USD"
+                moedaDestino == "Bitcoin" && moedaOrigem == "Real" -> "BTC-BRL"
+                moedaOrigem == "Dólar" -> "USD-BRL"
+                moedaOrigem == "Real" -> "BRL-USD"
+                else -> "BTC-BRL"
+            }
+
+            try {
+                return withContext(Dispatchers.IO) {
+                    moedaApi.getMoeda(stringPesquisa)
+                }
+            }
+            catch (e: Exception) {
+                Log.e("ConverterRecursosActivity", "Erro ao buscar a moeda: $stringPesquisa", e)
+                textViewResult.text = "Erro ao buscar a moeda inserida."
+                null
+            }
+            finally {
+                hideLoading();
+            }
+        }
+        hideLoading()
+        return null;
+    }
+
+    private fun showLoading(){
+        progressBar.visibility = View.VISIBLE;
+        textViewResult.visibility = View.GONE;
+    }
+
+    private fun hideLoading(){
+        progressBar.visibility = View.GONE;
+        textViewResult.visibility = View.VISIBLE;
     }
 
     fun adicionaListenerValor(){
@@ -92,8 +154,15 @@ class ConverterRecursosActivity : AppCompatActivity() {
                     val integerPart = textoLimpo.substring(0, temVirgula);
                     var decimalPart = textoLimpo.substring(temVirgula + 1);
 
-                    if (decimalPart.length > 2) {
-                        decimalPart = decimalPart.substring(0, 2);
+                    val moedaOrigem = comboOrigem.selectedItem.toString()
+
+                    when {
+                        moedaOrigem == "Bitcoin" && decimalPart.length > 4 -> {
+                            decimalPart = decimalPart.substring(0, 4);
+                        }
+                        moedaOrigem != "Bitcoin" && decimalPart.length > 2 -> {
+                            decimalPart = decimalPart.substring(0, 2);
+                        }
                     }
 
                     val newText = "$integerPart$separadorDecimal$decimalPart";

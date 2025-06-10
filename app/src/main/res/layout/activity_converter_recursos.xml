@@ -17,23 +17,21 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/textViewMoedaOrigem"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="32sp"
-            android:text="Selecione a moeda de origem:"
+            android:text="Moeda de origem:"
+            android:layout_marginRight="100dp"
             android:textSize="16sp" />
 
         <Spinner
             android:id="@+id/spinnerMoedaOrigem"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
             android:minHeight="48dp" />
 
     </LinearLayout>
@@ -41,23 +39,21 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/textViewMoedaDestino"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="32sp"
-            android:text="Selecione a moeda de destino:"
+            android:text="Moeda de destino:"
+            android:layout_marginRight="96dp"
             android:textSize="16sp" />
 
         <Spinner
             android:id="@+id/spinnerMoedaDestino"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
             android:minHeight="48dp" />
 
     </LinearLayout>
@@ -70,10 +66,21 @@
         android:inputType="numberDecimal"
         android:layout_marginTop="16dp"/>
 
+    <TextView
+        android:id="@+id/textViewResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="32sp"
+        android:text=""
+        android:visibility="gone"
+        android:textSize="16sp" />
+
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:visibility="gone" />
 
     <Button
